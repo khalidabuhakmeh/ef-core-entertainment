@@ -141,7 +141,7 @@ namespace Entertainment.Models
     public class Movie : Production
     {
         public int DurationInMinutes { get; set; }
-        public decimal WorldwideBoxOfficeGross { get; set; }
+        public double WorldwideBoxOfficeGross { get; set; }
     }
 
     public class Series : Production
