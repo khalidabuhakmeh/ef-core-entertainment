@@ -26,17 +26,18 @@ var sum = await movies.SumAsync(x => x.WorldwideBoxOfficeGross);
 
 #region Render Highest Grossing Movies
 
-Output.Results(movies, "Highest Grossing Movies", 
+Output.Results(movies, $"Highest Grossing Movies", 
     new Table()
     .RoundedBorder()
     .BorderColor(Color.Yellow)
-    .AddColumns("Name", "Worldwide Box Office ($)")
+    .AddColumn("Name")
+    .AddColumn("Worldwide Box Office ($)", c => c.Footer($"[purple]{sum:C}[/]"))
     .AddRows(
         movies,
         m => $"[red]{m.Name}[/]",
         m => $"[green]{m.WorldwideBoxOfficeGross:C}[/]"
     )
-    .Footnote($"[purple]Total: {sum:C}[/]"));
+);
 
 #endregion
 
@@ -127,5 +128,153 @@ Output.Results(
         )
 );
 
-#endregion    
+#endregion
+
+var leastEpisodes = database
+    .Series
+    .OrderBy(x => x.NumberOfEpisodes)
+    .Select(x => new { x.Name, x.NumberOfEpisodes, x.Release })
+    .Take(1);
+    //.FirstAsync();
+
+#region Series with the fewest episodes
+
+Output.Results(
+    leastEpisodes, 
+    "Series with the fewest episodes", 
+    new Table()
+        .RoundedBorder()
+        .BorderColor(Color.Yellow)
+        .AddColumns("Name", "# of Episodes", "Release")
+        .AddRows(
+            await leastEpisodes.ToListAsync(),
+            m => $"[red]{m.Name}[/]",
+            m => m.NumberOfEpisodes,
+            m => $"[fuchsia]({m.Release:d})[/]"
+        )
+);
+
+#endregion
+
+var filteringTableByDiscriminator = 
+    database.Productions.OfType<Movie>();
+
+#region filteringTableByDiscriminator
+
+Output.Results(
+    filteringTableByDiscriminator, 
+    "Filtered production by discriminator", 
+    new Table()
+        .RoundedBorder()
+        .BorderColor(Color.Yellow)
+        .AddColumns("Name", "Release")
+        .AddRows(
+            await filteringTableByDiscriminator.ToListAsync(),
+            m => $"[red]{m.Name}[/]",
+            m => $"[fuchsia]({m.Release:d})[/]"
+        )
+);
+
+#endregion
+
+var actorsPlayingThemselves =
+    database.Characters
+        .Where(c => c.Name == c.Actor.Name)
+        .Select(c => new
+        {
+            character = c.Name,
+            actor = c.Actor.Name
+        });
+
+#region Actors playing themselves
+
+Output.Results(
+    actorsPlayingThemselves, 
+    "Characters In Multiple Productions", 
+    new Table()
+        .RoundedBorder()
+        .BorderColor(Color.Yellow)
+        .AddColumns("Character", "Actor")
+        .AddRows(
+            await actorsPlayingThemselves.ToListAsync(),
+            m => $"[red]{m.character}[/]",
+            m => $"[green]{m.actor}[/]"
+        )
+);
+
+#endregion
+
+var productionsWithTheInName = database
+    .Productions
+    .Where(x => x.Name.Contains("The"));
+
+#region Productions With "The" In Title
+
+Output.Results(
+    productionsWithTheInName, 
+    "Productions With \"The\" In Title", 
+    new Table()
+        .RoundedBorder()
+        .BorderColor(Color.Yellow)
+        .AddColumn("Name", c => c.Footer($"{productionsWithTheInName.Count()}"))
+        .AddRows(
+            await productionsWithTheInName.ToListAsync(),
+            m => $"[red]{m.Name}[/]"
+        )
+);
+
+#endregion
+
+var summerMovies = database
+    .Movies
+    .Where(x => x.Release.Month >= 4 && x.Release.Month < 8);
+
+#region Summer Movies
+
+Output.Results(
+    summerMovies, 
+    "Summer Movies", 
+    new Table()
+        .RoundedBorder()
+        .BorderColor(Color.Yellow)
+        .AddColumn("Name")
+        .AddColumn("Release", c => c.Footer($"{summerMovies.Count()}"))
+        .AddRows(
+            await summerMovies.ToListAsync(),
+            m => $"[red]{m.Name}[/]",
+            m => $"[fuchsia]({m.Release:d})[/]"
+        )
+);
+
+#endregion 
+
+var highestRating = database
+    .Ratings
+    .OrderByDescending(x => x.Production.Release)
+    .ThenByDescending(x => x.Stars)
+    .Select(r => new
+    {
+        stars = r.Stars, 
+        source = r.Source,
+        production = r.Production.Name
+    })
+    .Take(1);
     
+#region Highest Rating
+
+Output.Results(
+    highestRating, 
+    "Highest Rating", 
+    new Table()
+        .RoundedBorder()
+        .BorderColor(Color.Yellow)
+        .AddColumns("Source", "Stars", "Production")
+        .AddRows(
+            await highestRating.ToListAsync(),
+            m => $"[red]{m.source}[/]",
+            m => $"{string.Join("", Enumerable.Repeat("⭐️", m.stars))}",
+            m => m.production
+        )
+);
+
+#endregion 
