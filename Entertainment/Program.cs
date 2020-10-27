@@ -48,7 +48,7 @@ var highestRated = database
     {
         id = x.Id,
         name = x.Name,
-        avg = (double)x.Ratings.Average(x => x.Stars),
+        avg = x.Ratings.Average(r => r.Stars),
         type = x.GetType().Name
     })
     .OrderByDescending(x => x.avg);
