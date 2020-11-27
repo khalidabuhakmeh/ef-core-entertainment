@@ -14,7 +14,7 @@ Enables these commonly used dotnet-ef commands:
 - dotnet ef database update
 
 ```console
-dotnet tool install dotnet-ef --version 5.0.0-rc.2.20475.6
+dotnet tool install dotnet-ef --version 5.0.0
 ```
 
 The design package used for modeling and keeping track of schema changes.
